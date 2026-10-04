@@ -1,0 +1,12 @@
+{
+  "name": "seongmo-pk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "성모 PK - 초등학생을 위한 승부차기 게임 (Google Apps Script 웹 앱)",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}

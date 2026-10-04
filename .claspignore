@@ -1,0 +1,5 @@
+# clasp push 할 때 Apps Script 에 올릴 파일만 남깁니다.
+**/**
+!Code.gs
+!Index.html
+!appsscript.json
