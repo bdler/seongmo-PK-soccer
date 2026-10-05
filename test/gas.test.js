@@ -19,10 +19,12 @@ function fmtDate(d, fmt) {
 // ── 가짜 시트 ──
 function makeSheet(name, ss) {
   const sh = {
-    name, rows: [], formats: {}, frozen: 0,
+    name, rows: [], formats: {}, frozen: 0, maxRows: 1000,
     getParent: () => ss,
     getName: () => sh.name,
-    setName: n => { sh.name = n; return sh; },
+    setName: n => { if (ss.sheets.some(x => x !== sh && x.name === n)) throw new Error('같은 이름의 시트가 이미 있어요: ' + n); sh.name = n; return sh; },
+    getMaxRows: () => sh.maxRows,
+    insertRowAfter: () => { sh.maxRows++; },
     appendRow: row => {
       // 실제 시트처럼: ' 로 시작하면 글자로 저장(앞의 ' 는 빠짐), = 로 시작하면 수식이 됩니다.
       sh.rows.push(row.map(v => {
@@ -30,12 +32,17 @@ function makeSheet(name, ss) {
         if (typeof v === 'string' && v[0] === '=') { sh.formulaInjected = true; return '#FORMULA'; }
         return v;
       }));
+      sh.maxRows = Math.max(sh.maxRows, sh.rows.length);
       return sh;
     },
     setFrozenRows: n => { sh.frozen = n; },
     getLastRow: () => sh.rows.length,
-    deleteRows: (start, n) => { sh.rows.splice(start - 1, n); },
-    copyTo: target => { const c = makeSheet(sh.name + ' copy', target); c.rows = sh.rows.map(r => r.slice()); target.sheets.push(c); return c; },
+    deleteRows: (start, n) => {
+      // 실제 시트처럼: 머리글(고정 줄)을 뺀 모든 줄을 한꺼번에 지우려 하면 오류
+      if (n >= sh.maxRows - sh.frozen) throw new Error('고정되지 않은 모든 행을 삭제할 수 없습니다.');
+      sh.rows.splice(start - 1, n); sh.maxRows -= n;
+    },
+    copyTo: target => { const c = makeSheet('Copy of ' + sh.name + '#' + target.sheets.length, target); c.rows = sh.rows.map(r => r.slice()); c.maxRows = sh.maxRows; target.sheets.push(c); return c; },
     getRange: (a, b, c, d) => {
       const rng = {
         setFontWeight: () => rng, setBackground: () => rng,
@@ -55,6 +62,7 @@ function makeSpreadsheet(id) {
 }
 function makeEnv(opts = {}) {
   const store = { spreadsheets: {}, props: {}, cache: {}, logs: [], created: 0 };
+  if (opts.sheetId) store.props.SHEET_ID = opts.sheetId;
   const active = opts.bound ? makeSpreadsheet('bound') : null;
   if (active) store.spreadsheets.bound = active;
   const ctx = {
@@ -75,7 +83,7 @@ function makeEnv(opts = {}) {
     }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in store.props ? store.props[k] : null), setProperty: (k, v) => { store.props[k] = v; } }) },
     Utilities: { formatDate: (d, tz, f) => fmtDate(d, f) },
-    Session: { getScriptTimeZone: () => TZ },
+    Session: { getScriptTimeZone: () => TZ, getActiveUser: () => ({ getEmail: () => (opts.anonymous ? '' : 'teacher@school.kr') }), getEffectiveUser: () => ({ getEmail: () => 'teacher@school.kr' }) },
     Logger: { log: m => store.logs.push(m) },
     HtmlService: {
       XFrameOptionsMode: { ALLOWALL: 'ALLOWALL' },
@@ -99,6 +107,8 @@ test('doGet: Index 화면 · viewport · 끼워 넣기 허용', () => {
   const out = ctx.doGet({});
   assert.equal(out.file, 'Index');
   assert.match(out.meta.viewport, /width=device-width/);
+  assert.equal(out.meta['mobile-web-app-capable'], 'yes');   // 홈 화면에 추가했을 때 앱처럼
+  assert.equal(out.meta['apple-mobile-web-app-capable'], 'yes');
   assert.equal(out.xfo, 'ALLOWALL');
 });
 
@@ -209,8 +219,8 @@ test('기록 초기화: 백업 탭을 만들고 비웁니다', () => {
 // ── 화면(Index.html)과 서버(Code.gs)가 같은 규칙을 쓰는지 ──
 function clientFns() {
   const src = readIndexScript();
-  const code = [extractVar(src, 'REG_KICKS'), extractVar(src, 'MAX_ROUNDS'), extractVar(src, 'DIFF_MULT'), extractVar(src, 'PTS'), extractVar(src, 'BAD_WORDS'),
-    extractFunction(src, 'checkDecided'), extractFunction(src, 'computePoints'), extractFunction(src, 'hasBadWord'),
+  const code = [extractVar(src, 'REG_KICKS'), extractVar(src, 'MAX_ROUNDS'), extractVar(src, 'DIFF_MULT'), extractVar(src, 'PTS'), extractVar(src, 'BAD_WORDS'), extractVar(src, 'INVISIBLE_RE'),
+    extractFunction(src, 'checkDecided'), extractFunction(src, 'computePoints'), extractFunction(src, 'hasBadWord'), extractFunction(src, 'cleanNick'),
     'var G = { kicks: [[], []] };'].join('\n');
   const ctx = {};
   vm.createContext(ctx);
@@ -248,4 +258,96 @@ test('화면에서 끝난 승부차기 기록은 모두 서버가 받아 줍니�
     n++;
   }
   assert.equal(n, 10000);
+});
+
+/* ───────────── 코드 검토에서 찾은 문제들 (다시 생기지 않게) ───────────── */
+test('관리 함수: 웹 앱 방문자는 기록을 지우거나 시트를 만들 수 없어요', () => {
+  const anon = makeEnv({ anonymous: true });
+  anon.ctx.savePkResult(REC);
+  assert.throws(() => anon.ctx.clearPkRecords(), /관리자만/);
+  assert.throws(() => anon.ctx.setupPk(), /관리자만/);
+  assert.equal(anon.ctx.getPkLeaderboard({}).length, 1, '기록이 그대로 남아 있어야 해요');
+  // 주인이 편집기에서 실행하면 됩니다
+  const owner = makeEnv();
+  owner.ctx.savePkResult(REC);
+  assert.match(owner.ctx.setupPk(), /spreadsheets/);
+  assert.ok(owner.ctx.clearPkRecords());
+});
+
+test('기록 초기화: 기록이 1000줄 가까이 쌓여도 · 같은 분에 다시 실행해도 안전해요', () => {
+  for (const n of [1, 998, 999, 1000, 1001, 1500]) {
+    const { ctx, store } = makeEnv();
+    ctx.savePkResult(REC);
+    const sh = store.spreadsheets[store.props.SHEET_ID].getSheetByName('PK랭킹');
+    while (sh.rows.length < n + 1) sh.rows.push([new Date(), '채움' + sh.rows.length, '성모 FC', '한강 유나이티드', 1, 0, 1, 1, '승', '쉬움', 100]);
+    sh.maxRows = Math.max(sh.maxRows, sh.rows.length);
+    const a = ctx.clearPkRecords();
+    assert.equal(sh.rows.length, 1, n + '줄: 머리글만 남아야 해요');
+    // 같은 분에 한 번 더 (백업 이름이 겹침)
+    ctx.savePkResult(REC);
+    const b = ctx.clearPkRecords();
+    assert.notEqual(a, b);
+    const ss = store.spreadsheets[store.props.SHEET_ID];
+    assert.equal(ss.sheets.length, 3, '백업 탭 2개 + 랭킹 탭 (남는 임시 탭이 없어야 해요)');
+  }
+});
+
+test('설정한 시트를 열지 못해도 몰래 다른 시트를 만들지 않아요', () => {
+  const { ctx, store } = makeEnv({ sheetId: 'typo-id' });
+  const r = ctx.savePkResult(REC);
+  assert.equal(r.ok, false);
+  assert.match(r.message, /저장하지 못했어요/);
+  assert.doesNotMatch(r.message, /없는 시트|Exception/);      // 어려운 오류 문장은 화면에 안 나옴
+  assert.equal(store.props.SHEET_ID, 'typo-id');
+  assert.equal(store.created, 0);
+  assert.throws(() => ctx.getPkLeaderboard({}));              // 읽기도 다른 시트를 만들지 않고 오류로 알림
+  assert.equal(store.created, 0);
+});
+
+test('랭킹 읽기는 시트를 새로 만들지 않아요 (아직 기록이 없으면 빈 목록)', () => {
+  const { ctx, store } = makeEnv();
+  assert.equal(ctx.getPkLeaderboard({}).length, 0);
+  assert.equal(store.created, 0);
+  assert.equal(store.props.SHEET_ID, undefined);
+});
+
+test('도배 방지: 1분에 120번을 넘으면 잠시 기다리라고 해요', () => {
+  const { ctx } = makeEnv();
+  let ok = 0, blocked = 0;
+  for (let i = 0; i < 125; i++) { const r = ctx.savePkResult(Object.assign({}, REC, { nickname: '친구' + (i % 40) })); if (r.ok) ok++; else { blocked++; assert.match(r.message, /잠시/); } }
+  assert.equal(ok, 120); assert.equal(blocked, 5);
+});
+
+test('닉네임: 보이지 않는 글자 · 전각 문자로 검사를 피할 수 없어요 (화면과 서버 모두)', () => {
+  const c = clientFns(), { ctx } = makeEnv();
+  const bad = ['ㅤ', '​', '씨ㅤ발', '씨​발', 'ｆｕｃｋ', '병ㆍ신', 'ﾠ', 'ᅟ', '­‍', 'ＳＨＩＴ', '시﻿발'];
+  for (const n of bad) {
+    const cn = c.cleanNick(n), sn = ctx.cleanNick_(n);
+    assert.equal(cn, sn, JSON.stringify(n));
+    assert.ok(cn === '' || c.hasBadWord(cn), '화면이 걸러야 해요: ' + JSON.stringify(n));
+    assert.ok(sn === '' || ctx.hasBadWord_(sn), '서버가 걸러야 해요: ' + JSON.stringify(n));
+    assert.equal(ctx.savePkResult(Object.assign({}, REC, { nickname: n })).ok, false, JSON.stringify(n));
+  }
+  for (const good of ['슛돌이', '⚽축구왕', 'Kim 10', '골키퍼_민수', 'ABC']) {
+    assert.equal(c.hasBadWord(good), false, good); assert.equal(ctx.hasBadWord_(good), false, good);
+    assert.ok(c.cleanNick(good).length > 0 && ctx.cleanNick_(good).length > 0);
+  }
+});
+
+test('저장 메시지의 순위: 같은 닉네임의 더 높은 기록이 있으면 그 기록으로 순위를 매겨요 (랭킹 표와 같게)', () => {
+  const { ctx } = makeEnv();
+  ctx.savePkResult(Object.assign({}, REC, { nickname: '철수' }));                                                    // 1350
+  ctx.savePkResult(Object.assign({}, REC, { nickname: '영희', goalsFor: 3, goalsAgainst: 0, kicks: 3, faced: 3, saves: 1 })); // (300+100+300)*1.5=1050
+  const r = ctx.savePkResult(Object.assign({}, REC, { nickname: '철수', goalsFor: 3, goalsAgainst: 0, kicks: 3, faced: 3, saves: 0 })); // 이번엔 900점이지만 철수의 최고는 1350
+  assert.equal(r.ok, true);
+  assert.equal(r.rank, 1, '랭킹 표에서 철수는 1등(1350점)이에요');
+  const board = ctx.getPkLeaderboard({ period: 'all' });
+  assert.equal(board[0].nickname, '철수');
+});
+
+test('저장이 실패하면 쉬운 말만 돌려줘요 (오류 내용은 로그에만)', () => {
+  const { ctx } = makeEnv({ sheetId: 'bad' });
+  const r = ctx.savePkResult(REC);
+  assert.equal(r.ok, false);
+  assert.ok(r.message.length < 40);
 });

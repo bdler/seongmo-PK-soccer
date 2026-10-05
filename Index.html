@@ -12,7 +12,8 @@
 <meta name="apple-mobile-web-app-title" content="성모 PK">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#06120b; --panel:rgba(7,18,13,.88); --panel2:rgba(255,255,255,.05); --line:rgba(255,255,255,.13);
@@ -26,6 +27,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--
 /* 메뉴는 두 번 탭 확대 없이 바로 반응 (태블릿), 경기 화면은 모든 제스처를 게임이 처리 */
 html{touch-action:manipulation}
 body{height:100vh;height:100dvh}
+body{word-break:keep-all;overflow-wrap:break-word}
 #cv{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;display:block;outline:none;touch-action:none}
 .hidden{display:none!important}
 .screen{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;padding:16px;z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -90,7 +92,7 @@ h3{font-size:14px;color:var(--muted);margin:14px 0 7px;font-weight:700;letter-sp
 .st-vs{font:400 54px var(--title);color:var(--acc);text-shadow:0 4px 0 #1c1917,0 0 30px rgba(250,204,21,.4);line-height:1}
 .st-small{min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.4);color:#fff;font:700 13px var(--body);cursor:pointer;white-space:nowrap}
 .st-small:active{transform:scale(.96)}
-.st-opts{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto;gap:14px;align-items:end;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.st-opts{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto;gap:14px;align-items:end;position:sticky;bottom:calc(var(--scr-pb) * -1 + 8px);z-index:3;background:#08150e;box-shadow:0 8px 0 #08150e;border:1px solid var(--line);border-radius:18px;padding:12px 14px}
 .st-opts h3{margin:0 0 6px;font-size:13px;display:flex;gap:8px;align-items:baseline;min-width:0}
 .st-opts h3 small{color:var(--acc);font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .st-opts h3 small.warn{color:var(--bad)}
@@ -113,14 +115,14 @@ input.txt.bad{border-color:var(--bad)}
   .st-vs{font-size:34px}
   .st-card{min-height:0;padding:4px 0}
   .st-vis{height:clamp(70px,11vh,120px)}
-  .st-opts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .st-diff,.st-go{grid-column:1/3}
+  .st-opts{grid-template-columns:minmax(0,1fr)}
+  .st-diff,.st-go{grid-column:auto}
 }
 @media (max-aspect-ratio:1/1) and (max-width:600px){
   .st-top h2{font-size:24px}
   .st-side{padding:10px;gap:8px}
-  .st-list{grid-template-columns:repeat(8,minmax(0,1fr));gap:3px}
-  .st-list button{min-height:46px;border-width:2px}.st-list button svg{height:26px}.st-list button span{display:none}
+  .st-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .st-list button{min-height:48px;border-width:2px}.st-list button svg{height:26px}.st-list button span{display:block}
   .st-name{font-size:22px}.st-style{font-size:12px;margin-top:4px}
   .st-opts{padding:10px;gap:10px}
   .st-go{min-height:58px;font-size:26px}
@@ -223,6 +225,7 @@ body.touch .icon-btn svg{width:26px;height:26px}
 #gaugeMk{position:absolute;left:-9px;right:-9px;height:6px;margin-bottom:-3px;bottom:calc(3px + (100% - 6px) * var(--p));background:#fff;border-radius:3px;
   box-shadow:0 0 0 2px rgba(0,0,0,.55),0 0 12px rgba(255,255,255,.8)}
 #gauge .g-lbl{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 4px);font:900 12px var(--body);color:#fff;white-space:nowrap;text-shadow:0 1px 3px #000}
+#gauge{margin-bottom:20px}
 #btnShoot{pointer-events:auto;width:calc(var(--u) * 1.2);height:calc(var(--u) * 1.2);border-radius:50%;border:4px solid #fff;cursor:pointer;padding:0;
   background:radial-gradient(circle at 35% 30%,#fb923c,#dc2626 70%);color:#fff;box-shadow:0 8px 24px rgba(220,38,38,.55),inset 0 -6px 0 rgba(0,0,0,.2);
   display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;transition:transform .06s}
@@ -248,6 +251,7 @@ body.touch #btnShoot small{display:none}
   .pt-row{padding:1px 2px} .pt-total b{font-size:24px} .msg{min-height:18px;margin-top:4px}
   .kick-rows{margin-top:6px} .kd{width:18px;height:18px;font-size:11px}
   .rank-wrap{max-height:58vh}
+  #resKicks,.pts .pt-row{display:none}
   .hc{padding:10px 12px} .hc ol,.hc ul{font-size:14px;line-height:1.55}}
 </style>
 </head>
@@ -339,7 +343,7 @@ body.touch #btnShoot small{display:none}
           <li>상대 선수가 공을 <b>차는 순간</b>을 잘 봐요.</li>
           <li>공이 날아가는 곳을 <b>눌러서</b> 몸을 날려요.</li>
         </ol>
-        <p class="tip"><b>너무 일찍</b> 움직이면 상대가 반대쪽으로 찰 수도 있어요.<br>차기 직전에 상대 선수의 <b>몸이 기우는 쪽</b>이 힌트예요!</p>
+        <p class="tip">상대가 공을 <b>찰 때까지 기다렸다가</b> 움직여요. 차기 직전에 <b>몸이 기우는 쪽</b>이 힌트예요!<br><b>어려움</b>에서는 너무 일찍 움직이면 반대쪽으로 찰 수도 있어요.</p>
         <p class="key">키보드: <kbd>←</kbd><kbd>→</kbd> 옆으로 · <kbd>↑</kbd> 위로 점프 · <kbd>↑</kbd>+<kbd>←</kbd> 위쪽 구석 · <kbd>↓</kbd>+<kbd>→</kbd> 아래쪽 구석 · <kbd>Space</kbd> 가운데 막기</p>
       </section>
       <section class="hc">
@@ -456,7 +460,7 @@ var GOAL_HW = 3.66, GOAL_H = 2.44, GOAL_Z = 11, NET_Z = 12.6, NET_TOP = 2.2;
 var POST_R = 0.06, POST_C = GOAL_HW + POST_R, BAR_C = GOAL_H + POST_R, BALL_R = 0.11;
 var KEEPER_Z = 10.75, BOARD_Z = 16.5, GRAV = 9.81, STEP = 1 / 120;
 var REG_KICKS = 5, MAX_ROUNDS = 15;
-var KICK_FROM = { x: -1.35, z: -2.3 }, KICK_AT = { x: -0.32, z: -0.42 };
+var KICK_FROM = { x: -1.35, z: -2.3 }, KICK_AT = { x: -0.32, z: -0.42 }, kickFromX = KICK_FROM.x;
 var CAM0 = { x: 0, y: 2.25, z: -7.2 };
 var AIM_X = 4.8, AIM_YMIN = 0.12, AIM_YMAX = 3.4; // 조준 가능한 범위 (골대 밖도 조금)
 
@@ -483,14 +487,14 @@ var KICK_NUMS = [10, 9, 7, 11, 8, 6, 4, 5, 3, 2, 14, 17, 19, 20, 22];
 //            cFake 내가 너무 일찍 움직이면 반대로 찰 확률 · cCue 차기 직전 몸 기울기가 맞는 확률 · panenka 가운데로 살짝 띄우기
 //  내 골키퍼: hReach 팔다리 길이 배율 · hBonus 막는 판정 여유(m)
 var DIFFS = {
-  '쉬움':   { zone: [0.45, 0.85], gaugeHz: 0.6,  aimErr: 0.08, kRead: 0.12, kReact: 0.26, kDive: 0.52, kReach: 0.88, kHabit: 0,
-              cSide: [0.34, 0.32, 0.34], cX: [1.0, 2.4], cErr: 0.3,  cMiss: 0.14, cTf: [0.95, 1.1],  cFake: 0,    cCue: 1,    panenka: 0,
+  '쉬움':   { zone: [0.45, 0.85], gaugeHz: 0.6,  aimErr: 0.08, kRead: 0.25, kReact: 0.12, kDive: 0.52, kReach: 1.05, kHabit: 0,
+              cSide: [0.34, 0.32, 0.34], cX: [1.0, 2.4], cErr: 0.3,  cMiss: 0.08, cTf: [0.95, 1.1],  cFake: 0,    cCue: 1,    panenka: 0,
               hReach: 1.12, hBonus: 0.1 },
-  '보통':   { zone: [0.56, 0.84], gaugeHz: 0.8,  aimErr: 0.15, kRead: 0.27, kReact: 0.18, kDive: 0.45, kReach: 1.0,  kHabit: 0.25,
-              cSide: [0.4, 0.2, 0.4],    cX: [1.6, 3.0], cErr: 0.26, cMiss: 0.08, cTf: [0.7, 0.82],  cFake: 0.5,  cCue: 0.8,  panenka: 0.03,
+  '보통':   { zone: [0.56, 0.84], gaugeHz: 0.8,  aimErr: 0.15, kRead: 0.47, kReact: 0.08, kDive: 0.45, kReach: 1.0,  kHabit: 0.25,
+              cSide: [0.4, 0.2, 0.4],    cX: [1.6, 3.0], cErr: 0.26, cMiss: 0.08, cTf: [0.8, 0.92],  cFake: 0,  cCue: 0.8,  panenka: 0.03,
               hReach: 1.05, hBonus: 0.05 },
-  '어려움': { zone: [0.64, 0.84], gaugeHz: 1.0,  aimErr: 0.21, kRead: 0.4,  kReact: 0.12, kDive: 0.4,  kReach: 1.08, kHabit: 0.5,
-              cSide: [0.45, 0.1, 0.45],  cX: [2.2, 3.3], cErr: 0.22, cMiss: 0.04, cTf: [0.54, 0.62], cFake: 0.85, cCue: 0.62, panenka: 0.06,
+  '어려움': { zone: [0.64, 0.84], gaugeHz: 1.0,  aimErr: 0.21, kRead: 0.55, kReact: 0.12, kDive: 0.4,  kReach: 1.2,  kHabit: 0.5,
+              cSide: [0.45, 0.1, 0.45],  cX: [2.2, 3.3], cErr: 0.22, cMiss: 0.04, cTf: [0.74, 0.82], cFake: 0.85, cCue: 0.62, panenka: 0.06,
               hReach: 1.0,  hBonus: 0 }
 };
 var DIFF_ORDER = ['쉬움', '보통', '어려움'], DIFF_DEFAULT = '쉬움';
@@ -506,13 +510,15 @@ function computePoints(goals, saves, win, diff) {
 // 닉네임: 고운 말만 (서버도 같은 검사를 합니다)
 var BAD_WORDS = ['시발', '씨발', '씨바', '씨빨', '시벌', '씨벌', 'ㅅㅂ', 'ㅆㅂ', '병신', '븅신', '빙신', 'ㅂㅅ', '개새', '개색', '새끼', 'ㅅㄲ', '좆', '존나',
   'ㅈㄴ', '지랄', 'ㅈㄹ', '미친', 'ㅁㅊ', '닥쳐', '꺼져', '엿먹', '니애미', '느금', '섹스', 'sex', 'fuck', 'shit', 'bitch'];
+// 눈에 보이지 않는 글자 (소프트 하이픈, 한글 채움 문자, 너비 없는 공백, 방향 제어 문자 등)
+var INVISIBLE_RE = /[\u00AD\u115F\u1160\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFEFF\uFFA0]/g;
 function hasBadWord(s) {
-  var t = String(s || '').toLowerCase().replace(/[\s.\-_~!@#$%^&*()\[\]{}\/\\|,·'"`:;?<>+=0-9]/g, '');
+  var t = String(s || '').replace(/[\uFF21-\uFF3A\uFF41-\uFF5A]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).toLowerCase().replace(/[^a-z\uAC00-\uD7A3\u3131-\u3163]/g, '');
   for (var i = 0; i < BAD_WORDS.length; i++) if (t.indexOf(BAD_WORDS[i]) >= 0) return true;
   return false;
 }
 function cleanNick(v) {
-  var s = String(v || '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim();
+  var s = String(v || '').replace(INVISIBLE_RE, '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim();
   if (s.length > 10) s = s.substring(0, 10);
   return s;
 }
@@ -565,7 +571,7 @@ var keeper = {
   F: { x: 0, y: 0 }, H: { x: 0, y: 1.2 }, F0: { x: 0, y: 0 }, F1: { x: 0, y: 0 }, H0: { x: 0, y: 0 }, H1: { x: 0, y: 0 },
   plan: null, commitT: -9, reach: 1, bonus: 0, skin: SKIN_COLS[0], hair: HAIR_COLS[0], cheerT: -1
 };
-var kicker = { kit: null, shorts: '#fff', pat: 0, x: KICK_FROM.x, z: KICK_FROM.z, mode: 'idle', t: 0, runT: 1, wait: 0, run: 0, swing: 0, lean: 0, cue: 0,
+var kicker = { kit: null, shorts: '#fff', pat: 0, x: kickFromX, z: KICK_FROM.z, mode: 'idle', t: 0, runT: 1, wait: 0, run: 0, swing: 0, lean: 0, cue: 0,
   num: 10, skin: SKIN_COLS[0], hair: HAIR_COLS[0], struck: false, moodT: -1, mood: '' };
 
 /* =====================================================================
@@ -588,7 +594,13 @@ var Snd = {
       this.resume();
     } catch (e) { this.ctx = null; }
   },
-  resume: function () { try { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); } catch (e) { /* 무시 */ } },
+  resume: function () {
+    try {
+      var st = this.ctx && this.ctx.state; // iOS Safari 는 전화 · 시리 · 화면 잠금 뒤에 'interrupted' 가 됩니다
+      if (st === 'suspended' || st === 'interrupted') { var pr = this.ctx.resume(); if (pr && pr.catch) pr.catch(function () { /* 제스처가 아니면 거절될 수 있음 */ }); }
+    } catch (e) { /* 무시 */ }
+  },
+  suspend: function () { try { if (this.ctx && this.ctx.state === 'running') this.ctx.suspend(); } catch (e) { /* 무시 */ } },
   ok: function () { return !!(this.ctx && this.noise && !this.muted && !G.demo && this.ctx.state === 'running'); },
   setMuted: function (m) {
     this.muted = m;
@@ -754,6 +766,9 @@ function resize() {
   cam.cx = w / 2;
   var top = (CAM0.y - (BAR_C + 0.1)) / (GOAL_Z - CAM0.z), bot = (CAM0.y - BALL_R) / (0 - CAM0.z);
   cam.hy = h * (portrait ? 0.5 : 0.56) - cam.f * (top + bot) / 2;
+  // 키커가 화면 왼쪽 가장자리에서 잘리지 않게 (세로 화면)
+  kickFromX = Math.max(KICK_FROM.x, CAM0.x + (w * 0.2 - cam.cx) * (KICK_FROM.z - CAM0.z) / cam.f);
+  lastPaintSig = '';
 }
 function updateCamera(dt) {
   var target = 0;
@@ -782,7 +797,7 @@ function canvasPoint(e) { var r = cv.getBoundingClientRect(); return { x: e.clie
 function onCanvasDown(e) {
   Snd.init();
   if (e.pointerType === 'touch' && !G.touchMode) setTouchMode(true);
-  if (!inMatch()) return;
+  if (!inMatch() || G.time < (G.resumeT || 0)) return;
   var p = canvasPoint(e);
   if (G.phase === 'aim' && G.time >= G.inputT) {
     aimFromScreen(p.x, p.y); G.aimPtr = e.pointerId;
@@ -832,13 +847,13 @@ function onKeyUp(e) { var d = KEYDIR[e.code || '']; if (d) KEY[d] = false; }
 function onDirKey(d) {
   if (G.phase === 'aim') { G.aimSet = true; return; }
   if (!canHumanDive()) return;
-  if (!G.combo) G.combo = { left: 0, right: 0, up: 0, down: 0, t: G.time + 0.07 };
+  if (!G.combo) G.combo = { left: 0, right: 0, up: 0, down: 0, t: G.time + 0.1 };
   G.combo[d] = 1;
 }
 function fireCombo() {
   var c = G.combo; G.combo = null;
   if (!c || !canHumanDive()) return;
-  var x = c.right - c.left, y = c.up ? 1 : (c.down ? -1 : 0);
+  var x = ((c.right || KEY.right) ? 1 : 0) - ((c.left || KEY.left) ? 1 : 0), y = (c.up || KEY.up) ? 1 : ((c.down || KEY.down) ? -1 : 0);
   if (x === 0) humanDive(0, y > 0 ? 2.0 : 0.5);
   else humanDive(x * 2.7, y > 0 ? 1.85 : (y < 0 ? 0.25 : 0.85));
 }
@@ -884,6 +899,7 @@ function kickStakes(team) {
 function setPhase(p) { G.phase = p; G.phaseT = 0; updateGameUI(); }
 function banner(text, sub, dur, color) {
   if (G.demo) return;
+  G.pop.t = Math.min(G.pop.t, 0.15); // 건너뛰기를 눌렀을 때 '골!!!' 글자가 새 배너 위에 남지 않게
   G.banner.text = text; G.banner.sub = sub || ''; G.banner.t = G.banner.dur = dur || 1.4; G.banner.color = color || '#fff';
 }
 function popText(text, sub, color, dur) {
@@ -906,12 +922,13 @@ function nextTurn() {
   setPhase('ready');
   if (!G.demo) {
     var t = G.turn, sd = t.kickNo > REG_KICKS, st = kickStakes(team), sub;
-    var head = (sd ? '서든데스 · ' : '') + t.kickNo + '번째 키커';
+    var ORD = ['첫', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+    var head = (sd ? '서든데스 · ' : '') + (t.humanKeep ? '상대 ' : '') + (ORD[t.kickNo - 1] ? ORD[t.kickNo - 1] + ' 번째' : t.kickNo + '번째') + ' 키커';
     if (t.humanKick) {
       sub = st.ifGoal === 0 ? '이 골을 넣으면 승리!' : (st.ifMiss === 1 ? '꼭 넣어야 해요!' : G.cfg.nick + ' 선수, 골을 노려요!');
       banner('내가 찰 차례!', head + ' · ' + sub, 1.5, '#fde047');
     } else {
-      sub = st.ifMiss === 0 ? '막으면 승리!' : (st.ifGoal === 1 ? '꼭 막아야 해요!' : G.cfg.nick + ' 골키퍼, 막아라!');
+      sub = st.ifMiss === 0 ? '막으면 승리!' : (st.ifGoal === 1 ? '꼭 막아야 해요!' : G.cfg.nick + ' 골키퍼, 힘내요!');
       banner('내가 막을 차례!', head + ' · ' + sub, 1.5, '#7dd3fc');
     }
   }
@@ -925,7 +942,7 @@ function setupKick() {
   cam.dolly = 0; updateCamera(0);
   // 키커
   kicker.kit = kt.kit; kicker.shorts = shortsColor(kt.kit); kicker.pat = KIT_PAT[kt.def.abbr] || 0;
-  kicker.x = KICK_FROM.x; kicker.z = KICK_FROM.z; kicker.mode = 'idle'; kicker.t = 0; kicker.run = 0; kicker.swing = 0; kicker.lean = 0; kicker.cue = 0;
+  kicker.x = kickFromX; kicker.z = KICK_FROM.z; kicker.mode = 'idle'; kicker.t = 0; kicker.run = 0; kicker.swing = 0; kicker.lean = 0; kicker.cue = 0;
   kicker.struck = false; kicker.mood = ''; kicker.moodT = -1;
   kicker.num = KICK_NUMS[(G.kicks[t.team].length) % KICK_NUMS.length];
   kicker.skin = pick(SKIN_COLS); kicker.hair = pick(HAIR_COLS);
@@ -1048,7 +1065,9 @@ function launchBall(s) {
 // 컴퓨터 골키퍼: 공을 차는 순간 방향을 읽거나(확률) 한쪽을 찍습니다. 느린 공은 더 잘 읽습니다.
 function planCpuKeeper(s) {
   var d = G.diff, P;
-  var pRead = d.kRead + clamp((s.tf - 0.56) / 0.36, 0, 1) * (1 - d.kRead);
+  // 내 슛: 초록 구간 안이거나 넘치면 '초록 가운데' 속도로 읽습니다 → 초록 어디서 눌러도 똑같이 좋고, 빨강(넘침)은 초록보다 좋지 않아요
+  var tfR = s.human && s.power >= d.zone[0] ? lerp(1.0, 0.4, (d.zone[0] + d.zone[1]) / 2) : s.tf;
+  var pRead = d.kRead + clamp((tfR - 0.56) / 0.36, 0, 1) * (1 - d.kRead);
   if (Math.random() < pRead) {
     P = { x: s.tx + gauss() * 0.3, y: s.ty + gauss() * 0.25 };
   } else {
@@ -1104,7 +1123,9 @@ function updateKeeper(dt) {
       k.F.x = lerp(k.F0.x, k.F1.x, u);
       k.F.y = lerp(k.F0.y, k.F1.y, u) + (k.mode === 'dive' ? 0.22 * Math.sin(Math.PI * clamp(k.t / k.D, 0, 1)) : 0);
       k.H.x = lerp(k.H0.x, k.H1.x, u); k.H.y = lerp(k.H0.y, k.H1.y, u);
-      if (k.t >= k.D + (k.mode === 'jump' ? 0.12 : 0.04)) { k.mode = k.mode === 'dive' ? 'fall' : 'land'; k.t = 0; }
+      var hold = k.mode === 'jump' ? 0.12 : 0.04;
+      if (k.human && ball.state === 'flight' && !ball.passedK) hold = Math.max(hold, 0.6); // 공이 올 때까지 쭉 뻗은 자세 유지
+      if (k.t >= k.D + hold) { k.mode = k.mode === 'dive' ? 'fall' : 'land'; k.t = 0; }
       break;
     case 'fall': // 다이빙 뒤 땅에 떨어짐 (몸 길이는 그대로)
       u = easeInOut(k.t / 0.42);
@@ -1121,8 +1142,8 @@ function updateKeeper(dt) {
       break;
   }
   if (ball.state === 'held') {
-    if (k.mode === 'dive' || k.mode === 'fall') { ball.x = k.H.x; ball.y = Math.max(BALL_R, k.H.y - 0.02); }
-    else { ball.x = k.x0; ball.y = 1.0; }
+    if (k.mode === 'dive' || k.mode === 'fall' || k.mode === 'jump' || k.mode === 'land') { ball.x = k.H.x; ball.y = Math.max(BALL_R, k.H.y - 0.02); }
+    else { var hf = Math.min(1, dt * 10); ball.x += (k.x0 - ball.x) * hf; ball.y += (1.0 - ball.y) * hf; }
     ball.z = KEEPER_Z - 0.18;
   }
   if (k.cheerT >= 0 && G.time >= k.cheerT && (k.mode === 'ready' || k.mode === 'stay')) { k.mode = 'cheer'; k.t = 0; k.cheerT = -1; }
@@ -1131,10 +1152,11 @@ function updateKeeper(dt) {
 function keeperTouches(bx, by) {
   var k = keeper, R = BALL_R + k.bonus;
   if (k.mode === 'ready' || k.mode === 'cheer') {
-    return segDist(bx, by, k.x0, 0.05, k.x0, 1.72) < 0.26 + R || segDist(bx, by, k.x0 - 0.62, 1.18, k.x0 + 0.62, 1.18) < 0.1 + R;
+    return segDist(bx, by, k.x0, 0.05, k.x0, 1.5) < 0.26 + R || segDist(bx, by, k.x0 - 0.62, 1.18, k.x0 + 0.62, 1.18) < 0.1 + R;
   }
   if (k.mode === 'stay') {
-    return segDist(bx, by, k.x0, 0.05, k.x0, 1.35) < 0.32 + R || segDist(bx, by, k.x0 - 0.6, 0.42, k.x0 + 0.6, 0.42) < 0.13 + R;
+    return segDist(bx, by, k.x0, 0.05, k.x0, 1.35) < 0.32 + R || segDist(bx, by, k.x0 - 0.6, 0.42, k.x0 + 0.6, 0.42) < 0.13 + R ||
+      segDist(bx, by, k.x0 - 0.4, 0.5, k.x0 - 0.4, 0.85) < 0.09 + R || segDist(bx, by, k.x0 + 0.4, 0.5, k.x0 + 0.4, 0.85) < 0.09 + R;
   }
   var ex = k.H.x - k.F.x, ey = k.H.y - k.F.y, l = Math.sqrt(ex * ex + ey * ey) || 1;
   return segDist(bx, by, k.F.x, k.F.y, k.H.x + ex / l * 0.06, k.H.y + ey / l * 0.06) < 0.2 + R;
@@ -1145,7 +1167,7 @@ function keeperTouches(bx, by) {
  * ===================================================================== */
 function roofY(z) { return lerp(GOAL_H, NET_TOP, clamp((z - GOAL_Z) / (NET_Z - GOAL_Z), 0, 1)); }
 function updateBall(dt) {
-  if (ball.state === 'spot' || ball.state === 'held') return;
+  if (ball.state === 'spot' || ball.state === 'held' || ball.state === 'hidden') return;
   var px = ball.x, py = ball.y, pz = ball.z;
   if (ball.state === 'flight') {
     // 골대까지는 정확히 계산된 포물선 (가로 휘어짐 ax, 세로 g)
@@ -1195,7 +1217,11 @@ function updateBall(dt) {
         ball.y = top + BALL_R; ball.vy = Math.abs(ball.vy) * 0.3;
       }
     }
-    if (ball.z > BOARD_Z - BALL_R) { ball.z = BOARD_Z - BALL_R; ball.vz = -Math.abs(ball.vz) * 0.3; }
+    // 광고판은 1m 높이: 낮은 공만 튕기고, 위로 넘어간 공은 관중석 쪽으로 사라집니다
+    if (ball.z > BOARD_Z - BALL_R) {
+      if (pz <= BOARD_Z - BALL_R && ball.y < 1.0 + BALL_R) { ball.z = BOARD_Z - BALL_R; ball.vz = -Math.abs(ball.vz) * 0.3; }
+      else if (ball.z > BOARD_Z + 1.5) ball.state = 'hidden';
+    }
   }
   trail();
 }
@@ -1290,11 +1316,11 @@ function decideOutcome(res, how) {
       popText('선방!!', pick(SAVE_SUB), '#7dd3fc', 2.4);
       Snd.cheer(true); Snd.crowdLevel(0.12); G.crowdJump = 1; confetti(70);
     } else if (goal) {
-      popText('실점', s.fake ? '너무 일찍 움직였어요! 공을 차는 순간까지 기다려요' :
+      popText('앗!', s.fake ? '너무 일찍 움직였어요! 공을 차는 순간까지 기다려요' :
         (s.panenka ? '가운데로 살짝 띄운 파넨카 킥!' : (keeper.mode === 'ready' ? '공이 가는 곳을 눌러 몸을 날려 보세요!' : '아깝다! 다음엔 막을 수 있어요')), '#fca5a5');
       Snd.groan();
     } else {
-      popText('실축!', how === 'post' || how === 'bar' ? '상대 슛이 골대를 맞았어요!' : '상대가 골대 밖으로 찼어요', '#86efac');
+      popText('살았다!', how === 'post' || how === 'bar' ? '상대 슛이 골대를 맞았어요!' : '상대가 골대 밖으로 찼어요', '#86efac');
       Snd.cheer(false);
     }
   }
@@ -1313,7 +1339,7 @@ function updateKicker(dt) {
     case 'run':
       u = clamp(k.t / k.runT, 0, 1);
       var e = easeInOut(u);
-      k.x = lerp(KICK_FROM.x, KICK_AT.x, e); k.z = lerp(KICK_FROM.z, KICK_AT.z, e);
+      k.x = lerp(kickFromX, KICK_AT.x, e); k.z = lerp(KICK_FROM.z, KICK_AT.z, e);
       k.run += dt * 13;
       k.lean = k.cue && u > 0.55 ? k.cue * 0.2 * (u - 0.55) / 0.45 : 0;
       if (u >= 1) { k.mode = 'swing'; k.t = 0; }
@@ -1329,6 +1355,7 @@ function updateKicker(dt) {
       if (u >= 1) { k.mode = 'idle'; k.t = 0; }
       break;
   }
+  if (k.struck && k.mode !== 'run') k.x += ((KICK_AT.x - 1.7) - k.x) * Math.min(1, dt * 2.5); // 찬 뒤에는 옆으로 비켜서 골키퍼와 공이 보이게
   if (k.moodT >= 0 && G.time >= k.moodT && (k.mode === 'idle' || k.mode === 'follow')) { k.mode = k.mood; k.t = 0; k.moodT = -1; }
 }
 function updateAim(dt) {
@@ -1391,13 +1418,10 @@ function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2
 function ellipse(x, y, rx, ry) { ctx.beginPath(); ctx.ellipse(x, y, Math.max(0, rx), Math.max(0, ry), 0, 0, 6.2832); }
 var BOARD_TXT = ['성모 PK', 'SEONGMO', '페어플레이', '성모 FC', '즐거운 축구', 'GOAL!', '승부차기', '챔피언'];
 var BOARD_COL = ['#1d4ed8', '#b91c1c', '#0f766e', '#a16207', '#6d28d9', '#be185d'];
-function drawStadium() {
+function paintStadium() { // 카메라가 움직이지 않을 때의 모습을 한 번만 그립니다 (아래 drawStadium 이 화면에 붙임)
   var W = view.w, H = view.h, yTop = sy(1.0, BOARD_Z), yBase = sy(0, BOARD_Z), i;
   ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, W, Math.min(H, yBase + 2));
-  if (crowdPat) {
-    var jump = G.crowdJump > 0 && !RM ? Math.abs(Math.sin(G.time * 14)) * 5 * G.crowdJump : 0;
-    ctx.save(); ctx.translate(0, -jump); ctx.fillStyle = crowdPat; ctx.fillRect(0, 0, W, yTop + jump + 1); ctx.restore();
-  }
+  if (crowdPat) { ctx.fillStyle = crowdPat; ctx.fillRect(0, 0, W, yTop + 1); }
   // 관중석 층 (난간)
   for (i = 1; i <= 7; i++) {
     var z = BOARD_Z + 2 + i * 4, y = 1.4 + i * 2.4, yy = sy(y, z);
@@ -1425,6 +1449,27 @@ function drawStadium() {
     ctx.fillStyle = BOARD_COL[i % BOARD_COL.length]; ctx.fillRect(X0 + 1, yTop, X1 - X0 - 2, yBase - yTop);
     ctx.fillStyle = '#fff'; ctx.fillText(BOARD_TXT[i % BOARD_TXT.length], (X0 + X1) / 2, (yTop + yBase) / 2 + 0.5);
   }
+}
+var stCv = document.createElement('canvas'), stCtx = stCv.getContext('2d'), stKey = '', stK = 1, stCamY = 0, stTop = 0;
+try { if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { stKey = ''; }); } catch (e) { /* 무시 */ }
+function drawStadium() {
+  var key = view.w + 'x' + view.h + '@' + view.dpr;
+  if (key !== stKey) { // 화면 크기 · 글꼴이 바뀔 때만 다시 그림
+    var cx0 = cam.x, cy0 = cam.y, cz0 = cam.z, main = ctx;
+    cam.x = CAM0.x; cam.y = CAM0.y; cam.z = CAM0.z;
+    stCv.width = Math.max(1, Math.round(view.w * view.dpr)); stCv.height = Math.max(1, Math.ceil((sy(0, BOARD_Z) + 2) * view.dpr));
+    ctx = stCtx; ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    try { paintStadium(); } finally { ctx = main; }
+    stK = sk(BOARD_Z); stCamY = cam.y; stTop = sy(1.0, BOARD_Z); stKey = key;
+    cam.x = cx0; cam.y = cy0; cam.z = cz0;
+  }
+  // 카메라가 앞으로 다가가는 동안(골 · 결과 장면)은 광고판 평면의 원근 변화만큼 늘이고 옮겨 붙임
+  var k1 = sk(BOARD_Z), sc = k1 / stK, ty = cam.hy - (stCamY - cam.y) * k1 - cam.hy * sc, tx = cam.cx - cam.cx * sc, hh = stCv.height / view.dpr;
+  ctx.save(); ctx.translate(tx, ty); ctx.scale(sc, sc);
+  ctx.drawImage(stCv, 0, 0, view.w, hh);
+  var jump = G.crowdJump > 0 && !RM ? Math.abs(Math.sin(G.time * 14)) * 5 * G.crowdJump : 0; // 골 뒤 관중 점프
+  if (jump > 0.5) ctx.drawImage(stCv, 0, 0, stCv.width, Math.round(stTop * view.dpr), 0, -jump, view.w, stTop);
+  ctx.restore();
 }
 // 땅 위의 선 (원근에 맞춰 굵기가 달라지는 사각형). 카메라 바로 앞은 잘라 냅니다.
 function groundLine(x0, z0, x1, z1, w) {
@@ -1752,7 +1797,7 @@ function hudLayout() {
   var rounds = Math.max(REG_KICKS, G.turn ? G.turn.round : 0, Math.ceil(total / 2));
   var nShow = Math.min(rounds, 8), DOT = 26, bw = 78 + nShow * DOT + 50, bh = 74;
   var btnW = G.touchMode ? 50 : 42, rightRes = 10 + safe.r + btnW * 2 + 8 + 10;
-  var sc = clamp(Math.min(W, H) / 540, 0.66, 1.3);
+  var sc = clamp(Math.min(W, H) / 480, 0.8, 1.3);
   var bx = (W - bw * sc) / 2;
   if (bx + bw * sc > W - rightRes) bx = W - rightRes - bw * sc;
   if (bx < 8 + safe.l) { bx = 8 + safe.l; sc = Math.min(sc, (W - rightRes - bx) / bw); }
@@ -1767,7 +1812,7 @@ function drawHUD() {
     var T = G.teams[t], y = 9 + t * 30, cy = y + 13;
     ctx.fillStyle = T.kit.shirt; ctx.fillRect(9, y + 2, 8, 22); ctx.fillStyle = T.kit.trim; ctx.fillRect(17, y + 2, 3, 22);
     txt(T.def.abbr, 26, cy, 15, '#fff', 900, 'left');
-    if (t === 0) txt('나', 64, cy, 11, '#fde047', 900, 'center');
+    if (t === 0) txt('나', 64, cy, 13, '#fde047', 900, 'center');
     for (i = 0; i < L.nShow; i++) {
       var r = L.r0 + i, kk = G.kicks[t][r], kx = 78 + i * L.DOT + L.DOT / 2;
       if (kk) {
@@ -1858,14 +1903,22 @@ function drawTutorial() {
     rrect(lx - tw / 2, ly - fs * 0.85, tw, fs * 1.7, fs * 0.85); ctx.fillStyle = 'rgba(250,204,21,.95)'; ctx.fill();
     txt(label, lx, ly, fs, '#1c1917', 900);
   } else if (G.turn.humanKeep && !G.tutKeep && (G.phase === 'cpuRun' || G.phase === 'flight')) {
-    var lb = G.touchMode ? '공이 가는 곳을 눌러요!' : '방향키로 몸을 날려요!', yy = sy(GOAL_H, GOAL_Z) - m * 0.06;
+    var lb = G.phase === 'flight' ? (G.touchMode ? '공이 가는 곳을 눌러요!' : '방향키로 몸을 날려요!') : '공을 찰 때까지 기다려요!', yy = sy(GOAL_H, GOAL_Z) - m * 0.06;
     ctx.font = '900 ' + fs.toFixed(1) + 'px "Noto Sans KR", sans-serif';
     var w2 = ctx.measureText(lb).width + fs * 1.2;
     rrect(W / 2 - w2 / 2, yy - fs * 0.85, w2, fs * 1.7, fs * 0.85); ctx.fillStyle = 'rgba(56,189,248,.95)'; ctx.fill();
     txt(lb, W / 2, yy, fs, '#0b1220', 900);
   }
 }
+var lastPaint = 0, lastPaintSig = '';
 function render() {
+  // 일시정지 · 결과(랭킹) 화면 뒤의 캔버스는 거의 움직이지 않음 → 같은 장면을 매 프레임 다시 그리지 않기
+  var calm = G.paused || (G.mode === 'result' && !G.confetti.length && G.banner.t <= 0 && G.pop.t <= 0 && G.flash <= 0 && G.shake <= 0);
+  if (calm) {
+    var sig = view.w + 'x' + view.h + '@' + view.dpr + (G.paused ? 'p' : 'r'), nowT = Date.now();
+    if (G.paused ? sig === lastPaintSig : (sig === lastPaintSig && nowT - lastPaint < 100)) return;
+    lastPaintSig = sig; lastPaint = nowT;
+  } else lastPaintSig = '';
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   ctx.save();
   if (G.shake > 0) { var sh = G.shake * 7; ctx.translate(rand(-sh, sh), rand(-sh, sh)); }
@@ -1880,9 +1933,10 @@ function render() {
   if (!ballFar && ball.z > KEEPER_Z) drawBall();
   drawKeeper();
   var ballFront = !ballFar && ball.z <= KEEPER_Z;
-  if (ballFront && ball.z > kicker.z) drawBall();
+  var seeBall = G.turn && G.turn.humanKeep && ball.state === 'flight'; // 막는 차례에는 공이 키커 몸에 가려지지 않게
+  if (ballFront && ball.z > kicker.z && !seeBall) drawBall();
   drawKicker();
-  if (ballFront && ball.z <= kicker.z) drawBall();
+  if (ballFront && (ball.z <= kicker.z || seeBall)) drawBall();
   drawAim();
   ctx.restore();
   if (G.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (G.flash * 0.6).toFixed(3) + ')'; ctx.fillRect(0, 0, view.w, view.h); }
@@ -1926,6 +1980,7 @@ function pauseGame() {
 }
 function resumeGame() {
   if (!G.paused) return;
+  G.resumeT = G.time + 0.3; // '계속하기'를 두 번 눌러도 조준이 바뀌거나 골키퍼가 움직이지 않게
   G.paused = false; resetInput(); show(null); focusCanvas();
   updateGameUI();
 }
@@ -1937,7 +1992,10 @@ function updateGameUI() {
   var gd = $('guide'), html = '';
   if (live && G.turn) {
     if (G.phase === 'aim') html = G.touchMode ? '① 골대를 눌러 <b>조준</b> → ② 게이지가 <b class="ok">초록색</b>일 때 <b>슛!</b>' : '<b>방향키</b>로 조준 → 게이지가 <b class="ok">초록색</b>일 때 <b>스페이스</b>';
-    else if (G.turn.humanKeep && (G.phase === 'ready' || G.phase === 'cpuRun' || G.phase === 'flight')) html = G.touchMode ? '공이 날아가는 곳을 <b>눌러서</b> 막아요!' : '<b>방향키</b>로 몸을 날려요! (<b>↑</b>+<b>←</b> = 위쪽 구석)';
+    else if (G.turn.humanKeep && (G.phase === 'cpuRun' || G.phase === 'flight')) {
+      if (G.phase === 'flight') html = G.touchMode ? '지금! 공이 가는 곳을 <b>눌러요!</b>' : '지금! <b>방향키</b>로 몸을 날려요!';
+      else html = G.touchMode ? '상대가 공을 <b>찰 때까지</b> 기다려요…' : '상대가 공을 <b>찰 때까지</b> 기다렸다가 <b>방향키</b>! (<b>↑</b>+<b>←</b> = 위쪽 구석)';
+    }
   }
   if (gd.innerHTML !== html) gd.innerHTML = html;
   // 슛 버튼이 있을 때 안내 문구가 버튼과 겹치지 않도록 왼쪽으로
@@ -1969,8 +2027,9 @@ function rankList(all, period, unique) {
   return out;
 }
 function rankOf(all, period, nick, score) {
-  var best = rankList(all, period, true), better = 0;
-  for (var i = 0; i < best.length; i++) if (String(best[i].nickname) !== nick && Number(best[i].score) > score) better++;
+  var best = rankList(all, period, true), better = 0, mine = score, i;
+  for (i = 0; i < best.length; i++) if (String(best[i].nickname) === nick) mine = Math.max(mine, Number(best[i].score) || 0); // 랭킹 표는 닉네임마다 최고 기록
+  for (i = 0; i < best.length; i++) if (String(best[i].nickname) !== nick && Number(best[i].score) > mine) better++;
   return { rank: better + 1, total: best.length };
 }
 var Store = {
@@ -1986,7 +2045,7 @@ var Store = {
       try {
         google.script.run
           .withSuccessHandler(function (res) { cb(res && typeof res === 'object' ? res : { ok: false, message: '서버 응답이 올바르지 않아요.' }); })
-          .withFailureHandler(function (err) { cb({ ok: false, message: '서버 오류: ' + ((err && err.message) || err) }); })
+          .withFailureHandler(function (err) { try { console.warn(err); } catch (x) { /* 무시 */ } cb({ ok: false, message: '인터넷 연결을 확인하고 다시 눌러 주세요.' }); })
           .savePkResult(rec);
       } catch (e) { cb({ ok: false, message: '서버에 연결할 수 없어요.' }); }
       return;
@@ -1995,8 +2054,10 @@ var Store = {
     var pts = computePoints(gf, rec.saves, gf > ga, rec.difficulty).total;
     list.push({ date: fmtNow(), nickname: rec.nickname, myTeam: rec.myTeam, oppTeam: rec.oppTeam, goalsFor: gf, goalsAgainst: ga,
       kicks: rec.kicks, saves: rec.saves, result: gf > ga ? '승' : (gf === ga ? '무' : '패'), difficulty: rec.difficulty, score: pts });
+    var nr = list[list.length - 1], today = fmtDay(new Date());
     list.sort(function (a, b) { return b.score - a.score; });
-    if (list.length > 300) list.length = 300;
+    // 300개가 넘으면 점수가 낮은 예전 기록부터 지웁니다 (방금 저장한 기록과 오늘 기록은 남겨요)
+    for (var di = list.length - 1; di >= 0 && list.length > 300; di--) if (list[di] !== nr && String(list[di].date).substring(0, 10) !== today) list.splice(di, 1);
     var ok = lsSet(LS_KEY, JSON.stringify(list));
     if (!ok) { cb({ ok: false, message: '이 브라우저에서는 기록을 저장할 수 없어요.' }); return; }
     var ra = rankOf(list, 'all', rec.nickname, pts), rt = rankOf(list, 'today', rec.nickname, pts);
@@ -2006,8 +2067,8 @@ var Store = {
     if (this.online()) {
       try {
         google.script.run
-          .withSuccessHandler(function (arr) { cb(null, Array.isArray(arr) ? arr : []); })
-          .withFailureHandler(function (err) { cb('랭킹을 불러오지 못했어요: ' + ((err && err.message) || err)); })
+          .withSuccessHandler(function (arr) { if (Array.isArray(arr)) cb(null, arr); else cb('랭킹을 불러오지 못했어요. 새로고침을 눌러 주세요.'); })
+          .withFailureHandler(function (err) { try { console.warn(err); } catch (x) { /* 무시 */ } cb('랭킹을 불러오지 못했어요. 새로고침을 눌러 주세요.'); })
           .getPkLeaderboard(opts);
       } catch (e) { cb('서버에 연결할 수 없어요.'); }
       return;
@@ -2142,6 +2203,7 @@ function startDemo() {
   G.demo = true; G.mode = 'menu'; G.paused = false; G.cfg = null; G.diff = DIFFS['보통'];
   G.teams = [{ def: TEAMS[a], kit: r.ka }, { def: TEAMS[b], kit: r.kb }];
   G.kicks = [[], []]; G.first = 0; G.hist = []; G.confetti.length = 0; G.banner.t = 0; G.pop.t = 0;
+  kicker.mood = ''; kicker.moodT = -1; keeper.cheerT = -1;
   nextTurn();
 }
 function startMatch(cfg) {
@@ -2163,9 +2225,12 @@ function startMatch(cfg) {
   // 첫 화면: 양 팀 소개 → 먼저 차는 팀
   G.turn = null;
   ball.state = 'spot'; ball.x = 0; ball.y = BALL_R; ball.z = 0; ball.trail.length = 0;
-  kicker.mode = 'idle'; kicker.x = KICK_FROM.x; kicker.z = KICK_FROM.z; keeper.mode = 'ready'; keeper.plan = null; keeper.x0 = 0;
+  kicker.mode = 'idle'; kicker.x = kickFromX; kicker.z = KICK_FROM.z; keeper.mode = 'ready'; keeper.plan = null; keeper.x0 = 0;
+  var ft = G.teams[G.first], ot = G.teams[1 - G.first];
+  kicker.kit = ft.kit; kicker.shorts = shortsColor(ft.kit); kicker.pat = KIT_PAT[ft.def.abbr] || 0; kicker.mood = ''; kicker.moodT = -1;
+  keeper.kit = ot.kit; keeper.cheerT = -1; keeper.human = false; cam.dolly = 0; net.amp = 0;
   setPhase('intro');
-  banner('승부차기!', (G.first === 0 ? G.teams[0].def.name + '(우리 팀)이 먼저 차요' : G.teams[1].def.name + '이(가) 먼저 차요'), 1.6, '#fde047');
+  banner('승부차기!', (G.first === 0 ? '우리 팀이 먼저 차요!' : G.teams[1].def.name + ' 팀이 먼저 차요'), 1.6, '#fde047');
   Snd.crowdStart();
   focusCanvas();
 }
@@ -2213,7 +2278,7 @@ function showResult() {
   row('난이도 ' + cfg.diff, '× ' + P.mult);
   var tot = el('div', 'pt-total'); tot.appendChild(document.createTextNode(cfg.nick + ' 님의 점수')); tot.appendChild(el('b', '', fmtNum(P.total))); tot.appendChild(document.createTextNode('점'));
   pe.appendChild(tot);
-  setSaveMsg('', '');
+  setSaveMsg('', ''); G.leaveAsked = false;
   $('btnSave').disabled = false; $('btnSave').textContent = '랭킹에 기록 저장';
   goScreen('result');
   prevScreen = 'result';
@@ -2235,6 +2300,7 @@ function saveRecord() {
       $('btnSave').textContent = '저장 완료';
       var rk = res.rank ? ' 오늘 ' + res.todayRank + '등 · 전체 ' + res.rank + '등!' : '';
       setSaveMsg((res.local ? '이 기기에 저장했어요.' : '온라인 랭킹에 저장했어요!') + rk, 'ok');
+      if (current === 'rank') loadRank(); // 저장 중에 랭킹을 열었다면 새 기록이 보이게 다시 불러오기
     } else {
       $('btnSave').disabled = false; $('btnSave').textContent = '다시 시도';
       setSaveMsg((res && res.message) || '저장하지 못했어요.', 'err');
@@ -2265,10 +2331,12 @@ function loadRank() {
     for (var h = 0; h < hs.length; h++) head.appendChild(el('th', hs[h][1], hs[h][0]));
     tb.appendChild(head);
     var myNick = lsGet('seongmoPK.nick', '');
+    var shown = 0, prevSc = null;
     for (var j = 0; j < list.length; j++) {
-      var r = list[j], tr = el('tr');
+      var r = list[j], tr = el('tr'), scn = Number(r.score) || 0;
+      if (scn !== prevSc) { shown = j + 1; prevSc = scn; } // 같은 점수는 같은 순위
       if (myNick && String(r.nickname) === myNick) tr.className = 'me';
-      tr.appendChild(el('td', 'rk' + (j < 3 ? ' rk' + (j + 1) : ''), String(j + 1)));
+      tr.appendChild(el('td', 'rk' + (shown <= 3 ? ' rk' + shown : ''), String(shown)));
       var nk = el('td', 'nk', String(r.nickname)); nk.title = String(r.nickname) + (r.games ? ' · ' + r.games + '판' : '');
       tr.appendChild(nk);
       var gl = (Number(r.goalsFor) || 0) + ':' + (Number(r.goalsAgainst) || 0), gm = el('td', 'gm');
@@ -2329,8 +2397,14 @@ function bindUI() {
   $('btnQuit').addEventListener('click', goMenu);
   $('btnSave').addEventListener('click', saveRecord);
   $('btnResRank').addEventListener('click', function () { goScreen('rank', 'result'); });
-  $('btnAgain').addEventListener('click', function () { startMatch(G.cfg); });
-  $('btnResMenu').addEventListener('click', goMenu);
+  // 저장하지 않고 나가면 점수가 사라지므로, 처음 한 번은 알려 주고 한 번 더 누르면 나갑니다
+  function leave(fn) {
+    if (G.saved || G.saving || G.leaveAsked) { G.leaveAsked = false; fn(); return; }
+    G.leaveAsked = true;
+    setSaveMsg('아직 랭킹에 저장하지 않았어요! 저장은 위 노란 버튼, 그냥 나가려면 한 번 더 눌러요.', 'info');
+  }
+  $('btnAgain').addEventListener('click', function () { leave(function () { startMatch(G.cfg); }); });
+  $('btnResMenu').addEventListener('click', function () { leave(goMenu); });
   $('btnRankReload').addEventListener('click', loadRank);
   $('rankTabs').addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('button') : e.target;
@@ -2352,6 +2426,7 @@ function bindUI() {
   });
   document.addEventListener('visibilitychange', function () {
     if (document.hidden && G.mode === 'match' && !G.paused && G.phase !== 'final') pauseGame();
+    if (document.hidden) Snd.suspend(); else Snd.resume();
     lastT = 0;
   });
   window.addEventListener('pointerdown', function (e) {

@@ -22,6 +22,10 @@ var TEAM_NAMES = ['성모 FC', '한강 유나이티드', '푸른별 시티', '�
 var BAD_WORDS = ['시발', '씨발', '씨바', '씨빨', '시벌', '씨벌', 'ㅅㅂ', 'ㅆㅂ', '병신', '븅신', '빙신', 'ㅂㅅ', '개새', '개색', '새끼', 'ㅅㄲ', '좆', '존나',
   'ㅈㄴ', '지랄', 'ㅈㄹ', '미친', 'ㅁㅊ', '닥쳐', '꺼져', '엿먹', '니애미', '느금', '섹스', 'sex', 'fuck', 'shit', 'bitch'];
 var CACHE_SEC = 30;
+var RATE_PER_MIN = 120; // 1분에 저장할 수 있는 최대 횟수 (모든 사용자 합계)
+var MAX_ROWS = 20000;   // 시트가 이 줄 수를 넘으면 더 저장하지 않음
+// 눈에 보이지 않는 글자 (소프트 하이픈, 한글 채움 문자, 너비 없는 공백, 방향 제어 문자 등)
+var INVISIBLE_RE = /[\u00AD\u115F\u1160\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFEFF\uFFA0]/g;
 
 /* ───────────── 웹 앱 ───────────── */
 function doGet(e) {
@@ -29,6 +33,9 @@ function doGet(e) {
     .setTitle('성모 PK')
     // Apps Script 웹 앱은 HTML 안의 viewport 메타 태그를 쓰지 않으므로 여기서 넣어 줍니다 (태블릿 · 휴대폰 화면 맞춤).
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover')
+    // '홈 화면에 추가'로 열면 주소창 없이 앱처럼 보이게 (HTML 파일 안의 같은 태그는 웹 앱에서는 무시됩니다)
+    .addMetaTag('mobile-web-app-capable', 'yes')
+    .addMetaTag('apple-mobile-web-app-capable', 'yes')
     // 구글 사이트도구 등에 끼워 넣을(embed) 수 있게 합니다.
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -42,7 +49,12 @@ function savePkResult(rec) {
     if (!lock.tryLock(10000)) return { ok: false, message: '지금 저장하는 사람이 많아요. 잠시 뒤에 다시 눌러 주세요.' };
     var now = new Date(), all;
     try {
-      var sh = getSheet_();
+      // 한꺼번에 너무 많이 들어오면 막기 (도배 방지). 1분에 120번 · 시트가 2만 줄이 넘으면 중단
+      var cache = CacheService.getScriptCache(), rk = 'pk:rl:' + Math.floor(new Date().getTime() / 60000), n = Number(cache.get(rk) || 0) + 1;
+      cache.put(rk, String(n), 120);
+      if (n > RATE_PER_MIN) return { ok: false, message: '지금 저장하는 사람이 많아요. 잠시 뒤에 다시 눌러 주세요.' };
+      var sh = getSheet_(true);
+      if (sh.getLastRow() > MAX_ROWS) return { ok: false, message: '기록이 가득 찼어요. 선생님께 알려 주세요.' };
       sh.appendRow([now, safeCell_(r.nickname), safeCell_(r.myTeam), safeCell_(r.oppTeam), r.goalsFor, r.goalsAgainst, r.kicks, r.saves, r.result, r.difficulty, r.score]);
       SpreadsheetApp.flush();
       bumpCache_();
@@ -54,7 +66,8 @@ function savePkResult(rec) {
     var ra = rankOf_(all, 'all', today, r.nickname, r.score), rt = rankOf_(all, 'today', today, r.nickname, r.score);
     return { ok: true, score: r.score, rank: ra.rank, total: ra.total, todayRank: rt.rank, todayTotal: rt.total };
   } catch (e) {
-    return { ok: false, message: '저장하는 중에 문제가 생겼어요: ' + (e && e.message ? e.message : e) };
+    console.error(e); // 자세한 내용은 실행 로그에만 남기고, 화면에는 쉬운 말만 보여 줍니다
+    return { ok: false, message: '저장하지 못했어요. 잠시 뒤에 다시 눌러 주세요.' };
   }
 }
 
@@ -70,7 +83,8 @@ function getPkLeaderboard(opts) {
   var key = 'pk:' + (cache.get('pk:ver') || '0') + ':' + period + ':' + (unique ? 1 : 0) + ':' + limit + ':' + (period === 'today' ? today : '');
   var hit = cache.get(key);
   if (hit) { try { return JSON.parse(hit); } catch (e) { /* 다시 읽기 */ } }
-  var list = rankList_(readAll_(getSheet_()), period, unique, today).slice(0, limit);
+  var sh = getSheet_(false);
+  var list = sh ? rankList_(readAll_(sh), period, unique, today).slice(0, limit) : [];
   try { cache.put(key, JSON.stringify(list), CACHE_SEC); } catch (e) { /* 캐시가 너무 크면 건너뜀 */ }
   return list;
 }
@@ -78,27 +92,38 @@ function getPkLeaderboard(opts) {
 /* ───────────── 관리용 (편집기에서 직접 실행) ───────────── */
 // 처음 한 번 실행: 랭킹 시트를 만들고 주소를 실행 로그에 보여 줍니다.
 function setupPk() {
-  var sh = getSheet_();
+  assertAdmin_();
+  var sh = getSheet_(true);
   var url = sh.getParent().getUrl();
   Logger.log('랭킹 시트 준비 완료: ' + url + ' (탭: ' + SHEET_NAME + ')');
   return url;
 }
 // 기록 초기화: 지금 기록을 'PK랭킹_백업_날짜' 탭으로 복사한 뒤 비웁니다.
 function clearPkRecords() {
+  assertAdmin_(); // 웹 앱 주소를 아는 누구나 호출할 수 있으므로, 시트 주인이 직접 실행한 경우에만
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var sh = getSheet_(), ss = sh.getParent();
-    var name = SHEET_NAME + '_백업_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm');
+    var sh = getSheet_(true), ss = sh.getParent();
+    var base = SHEET_NAME + '_백업_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm'), name = base, k = 2;
+    while (ss.getSheetByName(name)) name = base + '_' + (k++); // 복사하기 전에 이름 확인 (같은 분에 다시 실행해도 안전)
     sh.copyTo(ss).setName(name);
     var last = sh.getLastRow();
-    if (last > 1) sh.deleteRows(2, last - 1);
+    if (last > 1) {
+      if (sh.getMaxRows() <= last) sh.insertRowAfter(last); // 머리글 말고 비울 수 있는 줄이 하나는 남아 있어야 지울 수 있어요
+      sh.deleteRows(2, last - 1);
+    }
     bumpCache_();
     Logger.log('기록을 비웠어요. 백업 탭: ' + name);
     return name;
   } finally {
     lock.releaseLock();
   }
+}
+// 관리 함수는 이 스크립트의 주인(웹 앱을 배포한 사람)이 편집기나 시트 메뉴에서 직접 실행할 때만 동작합니다.
+function assertAdmin_() {
+  var who = Session.getActiveUser().getEmail(), me = Session.getEffectiveUser().getEmail();
+  if (!who || who !== me) throw new Error('관리자만 실행할 수 있어요. (Apps Script 편집기에서 직접 실행해 주세요)');
 }
 // 이 스크립트가 구글 시트에 붙어 있을 때(확장 프로그램 → Apps Script) 시트 위에 메뉴를 만듭니다.
 function onOpen() {
@@ -111,17 +136,21 @@ function onOpen() {
 }
 
 /* ───────────── 내부 함수 ───────────── */
-function getSheet_() {
+// create 가 true 일 때만 시트 · 탭을 새로 만듭니다 (저장 · 관리). 읽기에서는 만들지 않고 null 을 돌려줍니다.
+// SHEET_ID 가 정해져 있으면 그 시트만 씁니다 (열지 못하면 오류를 그대로 알려 줌: 다른 시트로 몰래 바꾸지 않아요).
+function getSheet_(create) {
   var props = PropertiesService.getScriptProperties(), ss = null;
   var id = props.getProperty('SHEET_ID');
-  if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }
-  if (!ss) { try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { ss = null; } }
+  if (id) ss = SpreadsheetApp.openById(id);
+  else { try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { ss = null; } }
   if (!ss) {
+    if (!create) return null;
     ss = SpreadsheetApp.create('성모 PK 랭킹');
     props.setProperty('SHEET_ID', ss.getId());
   }
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
+    if (!create) return null;
     sh = ss.insertSheet(SHEET_NAME);
     sh.appendRow(HEADERS);
     sh.setFrozenRows(1);
@@ -165,12 +194,12 @@ function possibleShootout_(gf, kicks, ga, faced) {
   return Math.abs(gf - ga) === 1;
 }
 function cleanNick_(v) {
-  var s = String(v === undefined || v === null ? '' : v).replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim();
+  var s = String(v === undefined || v === null ? '' : v).replace(INVISIBLE_RE, '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim();
   if (s.length > NICK_MAX) s = s.substring(0, NICK_MAX);
   return s;
 }
 function hasBadWord_(s) {
-  var t = String(s || '').toLowerCase().replace(/[\s.\-_~!@#$%^&*()\[\]{}\/\\|,·'"`:;?<>+=0-9]/g, '');
+  var t = String(s || '').replace(/[\uFF21-\uFF3A\uFF41-\uFF5A]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).toLowerCase().replace(/[^a-z\uAC00-\uD7A3\u3131-\u3163]/g, '');
   for (var i = 0; i < BAD_WORDS.length; i++) if (t.indexOf(BAD_WORDS[i]) >= 0) return true;
   return false;
 }
@@ -221,8 +250,10 @@ function rankList_(all, period, unique, today) {
 }
 // 이 점수가 닉네임별 최고 기록 중 몇 등인지 (같은 점수는 같은 등수)
 function rankOf_(all, period, today, nick, score) {
-  var best = rankList_(all, period, true, today), better = 0;
-  for (var i = 0; i < best.length; i++) if (best[i].nickname !== nick && best[i].score > score) better++;
+  var best = rankList_(all, period, true, today), better = 0, mine = score, i;
+  // 랭킹 표는 닉네임마다 최고 기록이므로, 내 닉네임의 최고 점수로 순위를 매깁니다.
+  for (i = 0; i < best.length; i++) if (best[i].nickname === nick) mine = Math.max(mine, best[i].score);
+  for (i = 0; i < best.length; i++) if (best[i].nickname !== nick && best[i].score > mine) better++;
   return { rank: better + 1, total: best.length };
 }
 function bumpCache_() {
